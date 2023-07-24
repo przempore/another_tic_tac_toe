@@ -16,6 +16,8 @@ const (
 
 const size = 3
 
+type selected = map[coordinate]sign
+
 type coordinate struct {
 	x int
 	y int
@@ -24,7 +26,7 @@ type coordinate struct {
 type model struct {
 	cursor   coordinate
 	board    [][]string
-	selected map[coordinate]sign
+	selected selected
 }
 
 func newModel() model {
@@ -34,7 +36,7 @@ func newModel() model {
 			{".", ".", "."},
 			{".", ".", "."},
 		},
-		selected: make(map[coordinate]sign),
+		selected: make(selected),
 	}
 }
 
