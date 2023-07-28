@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package tictactoe;
+
+service TicTacToe {
+    rpc InitialState(google.protobuf.Empty) returns (Board);
+}
+
+message Board {
+    repeated Row rows = 1;
+}
+
+message Row {
+    repeated Cell cells = 1;
+}
+
+message Cell {
+    enum State {
+        EMPTY = 0;
+        X = 1;
+        O = 2;
+    }
+
+    State state = 1;
+}
