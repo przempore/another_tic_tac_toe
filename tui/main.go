@@ -1,10 +1,16 @@
 package main
 
 import (
+	context "context"
 	"fmt"
+	"log"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type sign int
@@ -116,8 +122,29 @@ func (m model) View() string {
 	return ret
 }
 
+func grpcTest() {
+	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		fmt.Printf("Error while dialing to server; %v", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
+
+	client := NewTicTacToeClient(conn)
+
+	empty := &emptypb.Empty{}
+	board, err := client.InitialState(context.Background(), empty)
+	if err != nil {
+		fmt.Printf("Error while getting initial state; %v", err)
+		os.Exit(1)
+	}
+	log.Printf("Initial state: %v", board)
+}
+
 func main() {
 	fmt.Println("Welcome to the game of Tic Tac Toe!")
+
+	grpcTest()
 
 	p := tea.NewProgram(newModel())
 	if _, err := p.Run(); err != nil {
