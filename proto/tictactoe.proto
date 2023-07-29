@@ -11,6 +11,8 @@ service TicTacToeGrpc {
     rpc Turn(Board) returns (Player);
     rpc PossibleActions(Board) returns (Actions);
     rpc Result(BoardWithAction) returns (Board);
+    rpc Winner(Board) returns (Player);
+    rpc IsTerminal(Board) returns (Terminal);
 }
 
 message Board {
@@ -47,4 +49,8 @@ message Action {
 message BoardWithAction {
     Board board = 1;
     Action action = 2;
+}
+
+message Terminal {
+    bool terminal = 1;
 }
