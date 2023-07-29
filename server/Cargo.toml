@@ -9,9 +9,9 @@ edition = "2021"
 name = "hello-grpc-server"
 path = "src/server.rs"
 
-[[bin]]
-name = "hello-grpc-client"
-path = "src/client.rs"
+# [[bin]]
+# name = "hello-grpc-client"
+# path = "src/client.rs"
 
 [dependencies]
 prost = "0.11.9"

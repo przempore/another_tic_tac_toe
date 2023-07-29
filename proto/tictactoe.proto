@@ -6,8 +6,11 @@ option go_package = "github.com/przempore/another_tic_tac_toe/main";
 
 package tictactoe;
 
-service TicTacToe {
+service TicTacToeGrpc {
     rpc InitialState(google.protobuf.Empty) returns (Board);
+    rpc Turn(Board) returns (Player);
+    rpc PossibleActions(Board) returns (Actions);
+    rpc Result(BoardWithAction) returns (Board);
 }
 
 message Board {
@@ -18,12 +21,30 @@ message Row {
     repeated Cell cells = 1;
 }
 
-message Cell {
-    enum State {
-        EMPTY = 0;
-        X = 1;
-        O = 2;
-    }
+enum State {
+    EMPTY = 0;
+    X = 1;
+    O = 2;
+}
 
+message Player {
+    State player = 1;
+}
+
+message Cell {
     State state = 1;
+}
+
+message Actions {
+    repeated Action actions = 1;
+}
+
+message Action {
+    int32 row = 1;
+    int32 column = 2;
+}
+
+message BoardWithAction {
+    Board board = 1;
+    Action action = 2;
 }
