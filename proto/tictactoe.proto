@@ -2,6 +2,8 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+option go_package = "github.com/przempore/another_tic_tac_toe/proto/tictactoe";
+
 package tictactoe;
 
 service TicTacToe {
