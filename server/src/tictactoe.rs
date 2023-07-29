@@ -365,7 +365,7 @@ mod tests {
         let mut board = tic_tac_toe.initial_state();
         board.rows[0].cells[2] = cell_x.clone();
         board.rows[1].cells[1] = cell_x.clone();
-        board.rows[0].cells[2] = cell_x.clone();
+        board.rows[2].cells[0] = cell_x.clone();
         assert_eq!(tic_tac_toe.winner(board), State::X);
     }
 
