@@ -1,7 +1,4 @@
-use tictactoegrpc::{Action, Actions, Board, Cell, Row, State};
-pub mod tictactoegrpc {
-    tonic::include_proto!("tictactoe");
-}
+use crate::tictactoegrpc::{Action, Actions, Board, Cell, Row, State};
 
 #[derive(Default)]
 pub struct TicTacToe {}

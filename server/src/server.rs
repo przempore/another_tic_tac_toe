@@ -1,10 +1,14 @@
 use tonic::{transport::Server, Request, Response, Status};
 
-use tictactoe::tictactoegrpc::tic_tac_toe_grpc_server::{TicTacToeGrpc, TicTacToeGrpcServer};
-use tictactoe::tictactoegrpc::{Actions, Board, BoardWithAction, Player, Terminal};
+use tictactoegrpc::tic_tac_toe_grpc_server::{TicTacToeGrpc, TicTacToeGrpcServer};
+use tictactoegrpc::{Actions, Board, BoardWithAction, Player, Terminal};
 
 use tictactoe::TicTacToe;
 mod tictactoe;
+
+pub mod tictactoegrpc {
+    tonic::include_proto!("tictactoe");
+}
 
 #[derive(Default)]
 struct TicTacToeService {
