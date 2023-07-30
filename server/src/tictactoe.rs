@@ -102,9 +102,7 @@ impl TicTacToe {
         board
     }
 
-    fn row_winner(&self, board: Board) -> State {
-        let mut winner = State::Empty;
-
+    fn row_winner(&self, board: Board) -> Option<State> {
         for row in board.rows.iter() {
             let cell = row.cells[0].state;
             if cell == State::Empty as i32 {
@@ -118,15 +116,14 @@ impl TicTacToe {
                 is_same = true;
             }
             if is_same {
-                winner = State::from_i32(cell).unwrap();
+                Some(State::from_i32(cell).unwrap());
             }
         }
 
-        winner
+        None
     }
 
-    fn column_winner(&self, board: Board) -> State {
-        let mut winner = State::Empty;
+    fn column_winner(&self, board: Board) -> Option<State> {
         for (r, row) in board.rows.iter().enumerate() {
             let mut is_same = false;
             let current_cell = row.cells[r].state as i32;
@@ -141,60 +138,72 @@ impl TicTacToe {
             }
 
             if is_same {
-                winner = State::from_i32(current_cell).unwrap();
+                Some(State::from_i32(current_cell).unwrap());
             }
         }
 
-        winner
+        None
     }
 
-    fn diagonal_winner(&self, board: Board) -> State {
-        let mut winner = State::Empty;
+    fn diagonal_winner(&self, board: Board) -> Option<State> {
         for (r, row) in board.rows.iter().enumerate() {
             let mut is_same_slash = false;
             let mut is_same_backslash = false;
-            let current_cell_slash = row.cells[r].state as i32;
-            let current_cell_backslash = row.cells[row.cells.len() - 1 - r].state as i32;
+            let current_cell_slash = if row.cells[r].state != State::Empty as i32 {
+                Some(row.cells[r].state)
+            } else {
+                None
+            };
+            let current_cell_backslash =
+                if row.cells[row.cells.len() - 1 - r].state != State::Empty as i32 {
+                    Some(row.cells[row.cells.len() - 1 - r].state)
+                } else {
+                    None
+                };
 
             for cell in row.cells.iter() {
-                if current_cell_slash == cell.state {
-                    is_same_slash = true;
+                if let Some(slash) = current_cell_slash {
+                    if cell.state == slash {
+                        is_same_slash = true;
+                    }
                 }
-                if current_cell_backslash == cell.state {
-                    is_same_backslash = true;
+                if let Some(backslash) = current_cell_backslash {
+                    if cell.state == backslash {
+                        is_same_backslash = true;
+                    }
                 }
             }
 
             if is_same_slash {
-                winner = State::from_i32(current_cell_slash).unwrap();
+                return Some(State::from_i32(current_cell_slash.unwrap()).unwrap());
             }
 
             if is_same_backslash {
-                winner = State::from_i32(current_cell_backslash).unwrap();
+                return Some(State::from_i32(current_cell_backslash.unwrap()).unwrap());
             }
         }
 
-        winner
+        None
     }
 
-    pub fn winner(&self, board: Board) -> State {
-        let winner = self.row_winner(board.clone());
-        if winner != State::Empty {
-            return winner;
+    pub fn winner(&self, board: Board) -> Option<State> {
+        if let Some(winner) = self.row_winner(board.clone()) {
+            return Some(winner);
         }
 
-        let winner = self.column_winner(board.clone());
-        if winner != State::Empty {
-            return winner;
+        if let Some(winner) = self.column_winner(board.clone()) {
+            return Some(winner);
         }
 
-        let winner = self.diagonal_winner(board.clone());
+        if let Some(winner) = self.diagonal_winner(board.clone()) {
+            return Some(winner);
+        }
 
-        winner
+        None
     }
 
     pub fn is_terminal(&self, board: Board) -> bool {
-        if self.winner(board.clone()) != State::Empty {
+        if let Some(_) = self.winner(board.clone()) {
             return true;
         }
         let empty_cell = Cell {
@@ -207,6 +216,39 @@ impl TicTacToe {
         }
 
         true
+    }
+
+    fn utility(&self, board: Board) -> i32 {
+        match self.winner(board.clone()) {
+            Some(winner) => match winner {
+                State::X => 1,
+                State::O => -1,
+                State::Empty => 0,
+            },
+            None => 0,
+        }
+    }
+
+    pub fn minimax(&self, board: Board) -> Option<Action> {
+        if self.is_terminal(board.clone()) {
+            return None;
+        }
+
+        match self.turn(board.clone()) {
+            State::X => Some(self.max_value(board.clone())),
+            State::O => Some(self.min_value(board.clone())),
+            State::Empty => None,
+        };
+
+        None
+    }
+
+    fn max_value(&self, board: Board) -> Option<Action> {
+        None
+    }
+
+    fn min_value(&self, board: Board) -> Option<Action> {
+        None
     }
 }
 
@@ -290,7 +332,7 @@ mod tests {
         let action = Action { row: 0, column: 1 };
         let result = tic_tac_toe.result(board, action);
 
-        assert_eq!(tic_tac_toe.winner(result), State::Empty);
+        assert_eq!(tic_tac_toe.winner(result), None);
     }
 
     #[test]
@@ -304,21 +346,21 @@ mod tests {
         board.rows[0].cells[1] = cell_x.clone();
         board.rows[0].cells[2] = cell_x.clone();
 
-        assert_eq!(tic_tac_toe.winner(board), State::X);
+        assert_eq!(tic_tac_toe.winner(board), Some(State::X));
 
         let mut board = tic_tac_toe.initial_state();
         board.rows[1].cells[0] = cell_x.clone();
         board.rows[1].cells[1] = cell_x.clone();
         board.rows[1].cells[2] = cell_x.clone();
 
-        assert_eq!(tic_tac_toe.winner(board), State::X);
+        assert_eq!(tic_tac_toe.winner(board), Some(State::X));
 
         let mut board = tic_tac_toe.initial_state();
         board.rows[2].cells[0] = cell_x.clone();
         board.rows[2].cells[1] = cell_x.clone();
         board.rows[2].cells[2] = cell_x.clone();
 
-        assert_eq!(tic_tac_toe.winner(board), State::X);
+        assert_eq!(tic_tac_toe.winner(board), Some(State::X));
     }
 
     #[test]
@@ -332,19 +374,19 @@ mod tests {
         board.rows[0].cells[0] = cell_x.clone();
         board.rows[1].cells[0] = cell_x.clone();
         board.rows[2].cells[0] = cell_x.clone();
-        assert_eq!(tic_tac_toe.winner(board), State::X);
+        assert_eq!(tic_tac_toe.winner(board), Some(State::X));
 
         let mut board = tic_tac_toe.initial_state();
         board.rows[0].cells[1] = cell_x.clone();
         board.rows[1].cells[1] = cell_x.clone();
         board.rows[2].cells[1] = cell_x.clone();
-        assert_eq!(tic_tac_toe.winner(board), State::X);
+        assert_eq!(tic_tac_toe.winner(board), Some(State::X));
 
         let mut board = tic_tac_toe.initial_state();
         board.rows[0].cells[2] = cell_x.clone();
         board.rows[1].cells[2] = cell_x.clone();
         board.rows[2].cells[2] = cell_x.clone();
-        assert_eq!(tic_tac_toe.winner(board), State::X);
+        assert_eq!(tic_tac_toe.winner(board), Some(State::X));
     }
 
     #[test]
@@ -357,13 +399,13 @@ mod tests {
         board.rows[0].cells[0] = cell_x.clone();
         board.rows[1].cells[1] = cell_x.clone();
         board.rows[2].cells[2] = cell_x.clone();
-        assert_eq!(tic_tac_toe.winner(board), State::X);
+        assert_eq!(tic_tac_toe.winner(board), Some(State::X));
 
         let mut board = tic_tac_toe.initial_state();
         board.rows[0].cells[2] = cell_x.clone();
         board.rows[1].cells[1] = cell_x.clone();
         board.rows[2].cells[0] = cell_x.clone();
-        assert_eq!(tic_tac_toe.winner(board), State::X);
+        assert_eq!(tic_tac_toe.winner(board), Some(State::X));
     }
 
     #[test]

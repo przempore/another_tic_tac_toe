@@ -1,7 +1,7 @@
 use tonic::{transport::Server, Request, Response, Status};
 
 use tictactoegrpc::tic_tac_toe_grpc_server::{TicTacToeGrpc, TicTacToeGrpcServer};
-use tictactoegrpc::{Actions, Board, BoardWithAction, Player, Terminal};
+use tictactoegrpc::{Actions, Board, BoardWithAction, Player, State, Terminal};
 
 use tictactoe::TicTacToe;
 mod tictactoe;
@@ -48,9 +48,12 @@ impl TicTacToeGrpc for TicTacToeService {
 
     async fn winner(&self, request: Request<Board>) -> Result<Response<Player>, Status> {
         let board = request.into_inner();
-        Ok(Response::new(Player {
-            player: self.tic_tac_toe.winner(board) as i32,
-        }))
+        let player = if let Some(player) = self.tic_tac_toe.winner(board) {
+            player as i32
+        } else {
+            State::Empty as i32
+        };
+        Ok(Response::new(Player { player }))
     }
 
     async fn is_terminal(&self, request: Request<Board>) -> Result<Response<Terminal>, Status> {
