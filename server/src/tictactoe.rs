@@ -244,20 +244,12 @@ impl TicTacToe {
             return (self.utility(board.clone()), None);
         }
 
-        let (mut min_val, mut action) = self.min_value(self.result(
-            board.clone(),
-            self.possible_actions(board.clone()).actions[0].clone(),
-        ));
-        for i_action in self.possible_actions(board.clone()).actions.iter().skip(1) {
-            let (new_min_val, new_action) =
-                self.min_value(self.result(board.clone(), i_action.clone()));
-            if new_min_val > min_val {
-                min_val = new_min_val;
-                action = new_action;
-            }
-        }
-
-        (min_val, action)
+        self.possible_actions(board.clone())
+            .actions
+            .iter()
+            .map(|a| (self.min_value(self.result(board.clone(), a.clone()))))
+            .max_by_key(|(v, _)| v.clone())
+            .unwrap()
     }
 
     fn min_value(&self, board: Board) -> (i32, Option<Action>) {
@@ -265,20 +257,12 @@ impl TicTacToe {
             return (self.utility(board.clone()), None);
         }
 
-        let (mut max_val, mut action) = self.max_value(self.result(
-            board.clone(),
-            self.possible_actions(board.clone()).actions[0].clone(),
-        ));
-        for i_action in self.possible_actions(board.clone()).actions.iter().skip(1) {
-            let (new_max_val, new_action) =
-                self.max_value(self.result(board.clone(), i_action.clone()));
-            if new_max_val < max_val {
-                max_val = new_max_val;
-                action = new_action;
-            }
-        }
-
-        (max_val, action)
+        self.possible_actions(board.clone())
+            .actions
+            .iter()
+            .map(|a| (self.max_value(self.result(board.clone(), a.clone()))))
+            .min_by_key(|(v, _)| v.clone())
+            .unwrap()
     }
 }
 
