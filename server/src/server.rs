@@ -33,7 +33,7 @@ impl TicTacToeGrpc for TicTacToeService {
         request: Request<Board>,
     ) -> std::result::Result<Response<Actions>, Status> {
         let board = request.into_inner();
-        Ok(Response::new(self.tic_tac_toe.possible_actions(board)))
+        Ok(Response::new(self.tic_tac_toe.possible_actions(&board)))
     }
 
     async fn result(
@@ -48,7 +48,7 @@ impl TicTacToeGrpc for TicTacToeService {
 
     async fn winner(&self, request: Request<Board>) -> Result<Response<Player>, Status> {
         let board = request.into_inner();
-        let player = if let Some(player) = self.tic_tac_toe.winner(board) {
+        let player = if let Some(player) = self.tic_tac_toe.winner(&board) {
             player as i32
         } else {
             State::Empty as i32
