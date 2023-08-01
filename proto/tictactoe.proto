@@ -13,6 +13,7 @@ service TicTacToeGrpc {
     rpc Result(BoardWithAction) returns (Board);
     rpc Winner(Board) returns (Player);
     rpc IsTerminal(Board) returns (Terminal);
+    rpc Minimax(Board) returns (Action);
 }
 
 message Board {

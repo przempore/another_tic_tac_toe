@@ -1,7 +1,7 @@
 use tonic::{transport::Server, Request, Response, Status};
 
 use tictactoegrpc::tic_tac_toe_grpc_server::{TicTacToeGrpc, TicTacToeGrpcServer};
-use tictactoegrpc::{Actions, Board, BoardWithAction, Player, State, Terminal};
+use tictactoegrpc::{Action, Actions, Board, BoardWithAction, Player, State, Terminal};
 
 use tictactoe::TicTacToe;
 mod tictactoe;
@@ -61,6 +61,17 @@ impl TicTacToeGrpc for TicTacToeService {
         Ok(Response::new(Terminal {
             terminal: self.tic_tac_toe.is_terminal(board),
         }))
+    }
+
+    async fn minimax(
+        &self,
+        request: Request<Board>,
+    ) -> std::result::Result<Response<Action>, Status> {
+        if let Some(action) = self.tic_tac_toe.minimax(request.into_inner()) {
+            Ok(Response::new(action))
+        } else {
+            Err(Status::not_found("No action found"))
+        }
     }
 }
 
