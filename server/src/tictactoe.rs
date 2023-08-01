@@ -216,9 +216,9 @@ impl TicTacToe {
         }
 
         if self.turn(&board) == State::X {
-            return Some(self.max_value(&board).1.unwrap());
+            return self.max_value(&board).1;
         } else {
-            return Some(self.min_value(&board).1.unwrap());
+            return self.min_value(&board).1;
         }
     }
 
@@ -613,8 +613,50 @@ mod tests {
     #[test]
     fn test_minimax() {
         let tic_tac_toe = TicTacToe::default();
-        let board = tic_tac_toe.initial_state();
-
-        assert_ne!(tic_tac_toe.minimax(&board), None);
+        let board = Board {
+            rows: vec![
+                Row {
+                    cells: vec![
+                        Cell {
+                            state: State::X as i32,
+                        },
+                        Cell {
+                            state: State::X as i32,
+                        },
+                        Cell {
+                            state: State::O as i32,
+                        },
+                    ],
+                },
+                Row {
+                    cells: vec![
+                        Cell {
+                            state: State::O as i32,
+                        },
+                        Cell {
+                            state: State::X as i32,
+                        },
+                        Cell {
+                            state: State::O as i32,
+                        },
+                    ],
+                },
+                Row {
+                    cells: vec![
+                        Cell {
+                            state: State::X as i32,
+                        },
+                        Cell {
+                            state: State::Empty as i32,
+                        },
+                        Cell {
+                            state: State::Empty as i32,
+                        },
+                    ],
+                },
+            ],
+        };
+        // there is no winner
+        assert_eq!(tic_tac_toe.minimax(&board), None);
     }
 }
