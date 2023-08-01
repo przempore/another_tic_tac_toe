@@ -24,7 +24,7 @@ impl TicTacToeGrpc for TicTacToeService {
     async fn turn(&self, request: Request<Board>) -> Result<Response<Player>, Status> {
         let board = request.into_inner();
         Ok(Response::new(Player {
-            player: self.tic_tac_toe.turn(board) as i32,
+            player: self.tic_tac_toe.turn(&board) as i32,
         }))
     }
 
@@ -43,7 +43,10 @@ impl TicTacToeGrpc for TicTacToeService {
         let request = request.into_inner();
         let board = request.board.unwrap();
         let action = request.action.unwrap();
-        Ok(Response::new(self.tic_tac_toe.result(board, action)))
+        match self.tic_tac_toe.result(board, &action) {
+            Ok(board) => Ok(Response::new(board)),
+            Err(error) => Err(Status::not_found(error.to_string())),
+        }
     }
 
     async fn winner(&self, request: Request<Board>) -> Result<Response<Player>, Status> {
@@ -59,7 +62,7 @@ impl TicTacToeGrpc for TicTacToeService {
     async fn is_terminal(&self, request: Request<Board>) -> Result<Response<Terminal>, Status> {
         let board = request.into_inner();
         Ok(Response::new(Terminal {
-            terminal: self.tic_tac_toe.is_terminal(board),
+            terminal: self.tic_tac_toe.is_terminal(&board),
         }))
     }
 
@@ -67,7 +70,7 @@ impl TicTacToeGrpc for TicTacToeService {
         &self,
         request: Request<Board>,
     ) -> std::result::Result<Response<Action>, Status> {
-        if let Some(action) = self.tic_tac_toe.minimax(request.into_inner()) {
+        if let Some(action) = self.tic_tac_toe.minimax(&request.into_inner()) {
             Ok(Response::new(action))
         } else {
             Err(Status::not_found("No action found"))
