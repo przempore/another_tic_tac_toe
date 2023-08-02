@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/przempore/another_tic_tac_toe/main";
+option go_package = "github.com/przempore/another_tic_tac_toe/tictactoe";
 
 package tictactoe;
 

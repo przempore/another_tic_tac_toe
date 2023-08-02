@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+
+	pb "github.com/przempore/another_tic_tac_toe/tictactoe"
 )
 
 type sign int
@@ -81,7 +83,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "right", "l":
 			m.cursor.x = more(m.cursor.x, 0)
 		case "enter", " ":
-			m.selected[m.cursor] = X
+			s := getTurn()
+			if s == "X" {
+				m.selected[m.cursor] = X
+			} else if s == "O" {
+				m.selected[m.cursor] = O
+			} else {
+				log.Printf("Error while getting turn; %v", s)
+				os.Exit(1)
+			}
 		}
 	}
 
@@ -122,6 +132,32 @@ func (m model) View() string {
 	return ret
 }
 
+func getTurn() string {
+	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		fmt.Printf("Error while dialing to server; %v", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
+
+	client := pb.NewTicTacToeGrpcClient(conn)
+
+	empty := &emptypb.Empty{}
+	board, err := client.InitialState(context.Background(), empty)
+	if err != nil {
+		fmt.Printf("Error while getting initial state; %v", err)
+		os.Exit(1)
+	}
+	turn, err := client.Turn(context.Background(), board)
+	if err != nil {
+		fmt.Printf("Error while getting turn; %v", err)
+		os.Exit(1)
+	}
+
+	return turn.Player.String()
+
+}
+
 func grpcTest() {
 	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -130,7 +166,7 @@ func grpcTest() {
 	}
 	defer conn.Close()
 
-	client := NewTicTacToeClient(conn)
+	client := pb.NewTicTacToeGrpcClient(conn)
 
 	empty := &emptypb.Empty{}
 	board, err := client.InitialState(context.Background(), empty)
@@ -139,6 +175,14 @@ func grpcTest() {
 		os.Exit(1)
 	}
 	log.Printf("Initial state: %v", board)
+
+	turn, err := client.Turn(context.Background(), board)
+	if err != nil {
+		fmt.Printf("Error while getting turn; %v", err)
+		os.Exit(1)
+	}
+
+	log.Printf("Turn: %v", turn)
 }
 
 func main() {

@@ -83,6 +83,20 @@ impl TicTacToe {
     }
 
     pub fn possible_actions(&self, board: &Board) -> Actions {
+        // return board
+        //     .rows
+        //     .iter()
+        //     .enumerate()
+        //     .flat_map(|(r, row)| {
+        //         let (c, cell) = row.cells.iter().enumerate();
+        //         return (r, c, cell);
+        //     })
+        //     .filter(|(c, &cell)| cell.state == State::X as i32)
+        //     .map(|(c, &cell)| Action {
+        //         row: cell.state,
+        //         column: c as i32,
+        //     })
+        //     .collect();
         let mut actions = Actions::default();
 
         for (r, row) in board.rows.iter().enumerate() {
