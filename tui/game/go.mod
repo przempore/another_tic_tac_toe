@@ -30,4 +30,4 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19 // indirect
 )
 
-replace github.com/przempore/another_tic_tac_toe/tictactoe => ./generated_grpc/
+replace github.com/przempore/another_tic_tac_toe/tictactoe => ../generated_grpc/
