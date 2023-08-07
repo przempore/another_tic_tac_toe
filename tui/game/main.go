@@ -3,7 +3,6 @@ package main
 import (
 	context "context"
 	"fmt"
-	"log"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,11 +14,26 @@ import (
 	pb "github.com/przempore/another_tic_tac_toe/tictactoe"
 )
 
-type sign int
+type sign int32
 
 const (
-	X sign = iota
+	EMPTY sign = iota
+	X
 	O
+)
+
+var (
+	sign_value = map[string]sign{
+		"EMPTY": EMPTY,
+		"X":     X,
+		"O":     O,
+	}
+
+	sign_state = map[sign]pb.State{
+		EMPTY: pb.State_EMPTY,
+		X:     pb.State_X,
+		O:     pb.State_O,
+	}
 )
 
 const size = 3
@@ -35,9 +49,10 @@ type model struct {
 	cursor   coordinate
 	board    [][]string
 	selected selected
+	client   pb.TicTacToeGrpcClient
 }
 
-func newModel() model {
+func newModel(client pb.TicTacToeGrpcClient) model {
 	return model{
 		board: [][]string{
 			{".", ".", "."},
@@ -45,6 +60,7 @@ func newModel() model {
 			{".", ".", "."},
 		},
 		selected: make(selected),
+		client:   client,
 	}
 }
 
@@ -83,19 +99,39 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "right", "l":
 			m.cursor.x = more(m.cursor.x, 0)
 		case "enter", " ":
-			s := getTurn()
-			if s == "X" {
-				m.selected[m.cursor] = X
-			} else if s == "O" {
-				m.selected[m.cursor] = O
-			} else {
-				log.Printf("Error while getting turn; %v", s)
-				os.Exit(1)
-			}
+			m.selected[m.cursor] = sign_value[m.getTurn()]
 		}
 	}
 
 	return m, nil
+}
+
+func (m model) translate() *pb.Board {
+	board, err := m.client.InitialState(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		fmt.Printf("Error while getting initial state; %v", err)
+		os.Exit(1)
+	}
+
+	for i, row := range board.Rows {
+		for j, col := range row.Cells {
+			if s, err := m.getSelected(j, i); err == nil {
+				col.State = sign_state[sign_value[s]]
+			}
+		}
+	}
+
+	return board
+}
+
+func (m model) getTurn() string {
+	turn, err := m.client.Turn(context.Background(), m.translate())
+	if err != nil {
+		fmt.Printf("Error while getting turn; %v", err)
+		os.Exit(1)
+	}
+
+	return turn.Player.String()
 }
 
 func (m model) getSelected(j, i int) (string, error) {
@@ -132,65 +168,19 @@ func (m model) View() string {
 	return ret
 }
 
-func getTurn() string {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		fmt.Printf("Error while dialing to server; %v", err)
-		os.Exit(1)
-	}
-	defer conn.Close()
-
-	client := pb.NewTicTacToeGrpcClient(conn)
-
-	empty := &emptypb.Empty{}
-	board, err := client.InitialState(context.Background(), empty)
-	if err != nil {
-		fmt.Printf("Error while getting initial state; %v", err)
-		os.Exit(1)
-	}
-	turn, err := client.Turn(context.Background(), board)
-	if err != nil {
-		fmt.Printf("Error while getting turn; %v", err)
-		os.Exit(1)
-	}
-
-	return turn.Player.String()
-
-}
-
-func grpcTest() {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		fmt.Printf("Error while dialing to server; %v", err)
-		os.Exit(1)
-	}
-	defer conn.Close()
-
-	client := pb.NewTicTacToeGrpcClient(conn)
-
-	empty := &emptypb.Empty{}
-	board, err := client.InitialState(context.Background(), empty)
-	if err != nil {
-		fmt.Printf("Error while getting initial state; %v", err)
-		os.Exit(1)
-	}
-	log.Printf("Initial state: %v", board)
-
-	turn, err := client.Turn(context.Background(), board)
-	if err != nil {
-		fmt.Printf("Error while getting turn; %v", err)
-		os.Exit(1)
-	}
-
-	log.Printf("Turn: %v", turn)
-}
-
 func main() {
 	fmt.Println("Welcome to the game of Tic Tac Toe!")
 
-	grpcTest()
+	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		fmt.Printf("Error while dialing to server; %v", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
 
-	p := tea.NewProgram(newModel())
+	client := pb.NewTicTacToeGrpcClient(conn)
+
+	p := tea.NewProgram(newModel(client))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error while runninng the program; %v", err)
 		os.Exit(1)
