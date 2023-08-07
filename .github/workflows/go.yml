@@ -23,8 +23,8 @@ jobs:
 
     - name: Build
       run: go build -v ./...
-      working-directory: tui
+      working-directory: tui/game
 
     - name: Test
       run: go test -v ./...
-      working-directory: tui
+      working-directory: tui/game
