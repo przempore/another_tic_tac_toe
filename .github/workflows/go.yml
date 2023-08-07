@@ -13,6 +13,10 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tui/game
+
     steps:
     - uses: actions/checkout@v3
 
@@ -23,8 +27,6 @@ jobs:
 
     - name: Build
       run: go build -v ./...
-      working-directory: tui/game
 
     - name: Test
       run: go test -v ./...
-      working-directory: tui/game
